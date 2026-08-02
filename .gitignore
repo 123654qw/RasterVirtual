@@ -1,0 +1,42 @@
+# === Raster Virtual .gitignore ===
+# 仅保留源码与文档，排除所有打包大文件与二进制运行时
+
+# --- 构建 / 发布产物 ---
+publish/
+bin/
+obj/
+dist/
+build/
+
+# --- 打包好的客户端与下载器（大文件，不进仓库）---
+*.zip
+RasterVirtual-Download.exe
+RasterVirtual-Client.zip
+
+# --- 内置 QEMU 运行时（二进制，约 220MB，需本地裁剪生成）---
+runtime/
+src/RasterVirtual/runtime/qemu/
+
+# --- QEMU 安装器下载（大文件）---
+tools/qemu-setup.exe
+tools/qemu-setup-copy.exe
+
+# --- 诊断 / 日志 ---
+*.log
+
+# --- Python ---
+__pycache__/
+*.pyc
+*.pyo
+
+# --- IDE / 用户配置 ---
+.vs/
+*.user
+*.suo
+
+# --- WorkBuddy 本地数据 ---
+.workbuddy/
+
+# --- OS ---
+Thumbs.db
+Desktop.ini

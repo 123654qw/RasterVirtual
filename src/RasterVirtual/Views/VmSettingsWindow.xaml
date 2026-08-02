@@ -1,0 +1,405 @@
+<Window x:Class="RasterVirtual.Views.VmSettingsWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="虚拟机设置" Height="720" Width="880"
+        WindowStartupLocation="CenterOwner"
+        Background="{StaticResource BrushBackdrop}">
+
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+            <RowDefinition Height="Auto"/>
+        </Grid.RowDefinitions>
+
+        <!-- 标题栏 -->
+        <Border Grid.Row="0" Background="{StaticResource BrushSurface}"
+                BorderBrush="{StaticResource BrushBorder}" BorderThickness="0,0,0,1"
+                Padding="24,16">
+            <StackPanel>
+                <TextBlock x:Name="HeaderTitle" Text="虚拟机设置" FontSize="17" FontWeight="SemiBold"/>
+                <TextBlock x:Name="HeaderSubtitle" Text=""
+                           FontSize="12" Foreground="{StaticResource BrushTextMuted}" Margin="0,4,0,0"/>
+            </StackPanel>
+        </Border>
+
+        <TabControl Grid.Row="1" Margin="16,12,16,0">
+
+            <!-- ================= 系统 ================= -->
+            <TabItem Header="系统">
+                <ScrollViewer VerticalScrollBarVisibility="Auto">
+                    <StackPanel Margin="20,18,20,20">
+
+                        <TextBlock Text="处理器" Style="{StaticResource GroupHeader}"/>
+
+                        <Grid>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="90"/>
+                            </Grid.ColumnDefinitions>
+                            <TextBlock Grid.Column="0" Text="虚拟 CPU 核心数" Style="{StaticResource FieldLabel}"/>
+                            <TextBlock x:Name="CpuValue" Grid.Column="1" Text="2 核"
+                                       HorizontalAlignment="Right" FontSize="12"
+                                       Foreground="{StaticResource BrushAccent}"/>
+                        </Grid>
+                        <Slider x:Name="CpuSlider" Minimum="1" Maximum="16" Value="2"
+                                TickFrequency="1" IsSnapToTickEnabled="True"/>
+
+                        <TextBlock Text="每核线程数（超线程）" Style="{StaticResource FieldLabel}" Margin="0,18,0,6"/>
+                        <ComboBox x:Name="ThreadsCombo" Width="220" HorizontalAlignment="Left"/>
+
+                        <TextBlock Text="CPU 型号" Style="{StaticResource FieldLabel}" Margin="0,18,0,6"/>
+                        <ComboBox x:Name="CpuModelCombo" IsEditable="True" Width="320" HorizontalAlignment="Left"/>
+                        <TextBlock Text="max 会把主机 CPU 的全部可用特性暴露给客户机；老系统装不上时可改用 qemu64。"
+                                   Style="{StaticResource Hint}"/>
+
+                        <Border Style="{StaticResource HLine}" Margin="0,22"/>
+
+                        <TextBlock Text="内存" Style="{StaticResource GroupHeader}"/>
+
+                        <Grid>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="110"/>
+                            </Grid.ColumnDefinitions>
+                            <TextBlock Grid.Column="0" Text="分配给客户机的内存" Style="{StaticResource FieldLabel}"/>
+                            <TextBlock x:Name="MemValue" Grid.Column="1" Text="4 GB"
+                                       HorizontalAlignment="Right" FontSize="12"
+                                       Foreground="{StaticResource BrushAccent}"/>
+                        </Grid>
+                        <Slider x:Name="MemSlider" Minimum="512" Maximum="16384" Value="4096"
+                                TickFrequency="256" IsSnapToTickEnabled="True"/>
+                        <TextBlock x:Name="MemHint" Text="" Style="{StaticResource Hint}"/>
+
+                        <Border Style="{StaticResource HLine}" Margin="0,22"/>
+
+                        <TextBlock Text="固件与加速" Style="{StaticResource GroupHeader}"/>
+
+                        <Grid>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="16"/>
+                                <ColumnDefinition Width="*"/>
+                            </Grid.ColumnDefinitions>
+
+                            <StackPanel Grid.Column="0">
+                                <TextBlock Text="固件类型" Style="{StaticResource FieldLabel}"/>
+                                <ComboBox x:Name="FirmwareCombo"/>
+                            </StackPanel>
+
+                            <StackPanel Grid.Column="2">
+                                <TextBlock Text="虚拟化加速" Style="{StaticResource FieldLabel}"/>
+                                <ComboBox x:Name="AccelCombo"/>
+                            </StackPanel>
+                        </Grid>
+                        <TextBlock x:Name="FirmwareHint" Text="" Style="{StaticResource Hint}"/>
+
+                        <Border Style="{StaticResource HLine}" Margin="0,22"/>
+
+                        <TextBlock Text="引导与外设" Style="{StaticResource GroupHeader}"/>
+
+                        <TextBlock Text="首选引导设备" Style="{StaticResource FieldLabel}"/>
+                        <ComboBox x:Name="BootCombo" Width="260" HorizontalAlignment="Left"/>
+
+                        <TextBlock Text="指针设备" Style="{StaticResource FieldLabel}" Margin="0,18,0,6"/>
+                        <ComboBox x:Name="PointerCombo" Width="320" HorizontalAlignment="Left"/>
+
+                        <CheckBox x:Name="BootMenuCheck" Content="开机时显示引导菜单（按 F12 选择启动设备）" Margin="0,18,0,0"/>
+                        <CheckBox x:Name="RtcLocalCheck" Content="硬件时钟使用本地时间（Windows 客户机必选）" Margin="0,10,0,0"/>
+                        <CheckBox x:Name="HyperVCheck" Content="启用 Hyper-V 增强指令（提升 Windows 客户机性能）" Margin="0,10,0,0"/>
+                    </StackPanel>
+                </ScrollViewer>
+            </TabItem>
+
+            <!-- ================= 存储 ================= -->
+            <TabItem Header="存储">
+                <Grid Margin="20,18,20,20">
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="*"/>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="Auto"/>
+                    </Grid.RowDefinitions>
+
+                    <TextBlock Grid.Row="0" Text="虚拟硬盘" Style="{StaticResource GroupHeader}"/>
+
+                    <Border Grid.Row="1" Background="{StaticResource BrushSurface}"
+                            BorderBrush="{StaticResource BrushBorder}" BorderThickness="1"
+                            CornerRadius="6" Padding="1" MinHeight="150">
+                        <ListBox x:Name="DiskList" Background="Transparent" BorderThickness="0">
+                            <ListBox.ItemTemplate>
+                                <DataTemplate>
+                                    <Grid Margin="8,7">
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="*"/>
+                                            <ColumnDefinition Width="Auto"/>
+                                        </Grid.ColumnDefinitions>
+                                        <StackPanel Grid.Column="0">
+                                            <TextBlock Text="{Binding FileName}" FontSize="13"/>
+                                            <TextBlock Text="{Binding Detail}" FontSize="11"
+                                                       Foreground="{StaticResource BrushTextFaint}" Margin="0,3,0,0"/>
+                                        </StackPanel>
+                                        <TextBlock Grid.Column="1" Text="{Binding SizeText}" FontSize="12"
+                                                   VerticalAlignment="Center"
+                                                   Foreground="{StaticResource BrushTextMuted}"/>
+                                    </Grid>
+                                </DataTemplate>
+                            </ListBox.ItemTemplate>
+                        </ListBox>
+                    </Border>
+
+                    <StackPanel Grid.Row="2" Orientation="Horizontal" Margin="0,12,0,0">
+                        <Button x:Name="CreateDiskButton" Content="新建磁盘" Click="OnCreateDisk"/>
+                        <Button x:Name="AttachDiskButton" Content="附加已有" Click="OnAttachDisk" Margin="8,0,0,0"/>
+                        <Button x:Name="ResizeDiskButton" Content="扩容" Click="OnResizeDisk" Margin="8,0,0,0"/>
+                        <Button x:Name="DiskPropButton" Content="属性" Click="OnDiskProperties" Margin="8,0,0,0"/>
+                        <Button x:Name="RemoveDiskButton" Content="移除" Click="OnRemoveDisk" Margin="8,0,0,0"
+                                Style="{StaticResource DangerButton}"/>
+                    </StackPanel>
+
+                    <StackPanel Grid.Row="3" Margin="0,22,0,0">
+                        <Border Style="{StaticResource HLine}" Margin="0,0,0,18"/>
+                        <TextBlock Text="光驱" Style="{StaticResource GroupHeader}"/>
+
+                        <TextBlock Text="主光驱（安装映像）" Style="{StaticResource FieldLabel}"/>
+                        <Grid>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="Auto"/>
+                                <ColumnDefinition Width="Auto"/>
+                            </Grid.ColumnDefinitions>
+                            <TextBox x:Name="IsoBox" Grid.Column="0"/>
+                            <Button Grid.Column="1" Content="浏览…" Click="OnBrowseIso" Margin="8,0,0,0"/>
+                            <Button Grid.Column="2" Content="弹出" Click="OnEjectIso" Margin="8,0,0,0"/>
+                        </Grid>
+
+                        <TextBlock Text="副光驱（驱动盘，例如 virtio-win.iso）"
+                                   Style="{StaticResource FieldLabel}" Margin="0,16,0,6"/>
+                        <Grid>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="Auto"/>
+                                <ColumnDefinition Width="Auto"/>
+                            </Grid.ColumnDefinitions>
+                            <TextBox x:Name="Iso2Box" Grid.Column="0"/>
+                            <Button Grid.Column="1" Content="浏览…" Click="OnBrowseIso2" Margin="8,0,0,0"/>
+                            <Button Grid.Column="2" Content="弹出" Click="OnEjectIso2" Margin="8,0,0,0"/>
+                        </Grid>
+                    </StackPanel>
+                </Grid>
+            </TabItem>
+
+            <!-- ================= 显示 ================= -->
+            <TabItem Header="显示">
+                <ScrollViewer VerticalScrollBarVisibility="Auto">
+                    <StackPanel Margin="20,18,20,20">
+                        <TextBlock Text="显示适配器" Style="{StaticResource GroupHeader}"/>
+
+                        <TextBlock Text="显卡型号" Style="{StaticResource FieldLabel}"/>
+                        <ComboBox x:Name="VideoCombo" Width="360" HorizontalAlignment="Left"/>
+
+                        <Grid Margin="0,18,0,0">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="90"/>
+                            </Grid.ColumnDefinitions>
+                            <TextBlock Grid.Column="0" Text="显存大小" Style="{StaticResource FieldLabel}"/>
+                            <TextBlock x:Name="VramValue" Grid.Column="1" Text="64 MB"
+                                       HorizontalAlignment="Right" FontSize="12"
+                                       Foreground="{StaticResource BrushAccent}"/>
+                        </Grid>
+                        <Slider x:Name="VramSlider" Minimum="16" Maximum="512" Value="64"
+                                TickFrequency="16" IsSnapToTickEnabled="True"/>
+                        <TextBlock Text="仅对标准 VGA 与 QXL 生效。分辨率较高时建议 128 MB 以上。"
+                                   Style="{StaticResource Hint}"/>
+
+                        <Border Style="{StaticResource HLine}" Margin="0,22"/>
+
+                        <TextBlock Text="画面输出" Style="{StaticResource GroupHeader}"/>
+
+                        <TextBlock Text="显示后端" Style="{StaticResource FieldLabel}"/>
+                        <ComboBox x:Name="BackendCombo" Width="360" HorizontalAlignment="Left"/>
+
+                        <StackPanel x:Name="VncPanel" Margin="0,18,0,0" Visibility="Collapsed">
+                            <TextBlock Text="VNC 显示号" Style="{StaticResource FieldLabel}"/>
+                            <TextBox x:Name="VncBox" Width="120" HorizontalAlignment="Left"/>
+                            <TextBlock x:Name="VncHint" Text="" Style="{StaticResource Hint}"/>
+                        </StackPanel>
+
+                        <CheckBox x:Name="FullScreenCheck" Content="启动时进入全屏" Margin="0,18,0,0"/>
+                    </StackPanel>
+                </ScrollViewer>
+            </TabItem>
+
+            <!-- ================= 网络 ================= -->
+            <TabItem Header="网络">
+                <ScrollViewer VerticalScrollBarVisibility="Auto">
+                    <StackPanel Margin="20,18,20,20">
+                        <TextBlock Text="网络适配器" Style="{StaticResource GroupHeader}"/>
+
+                        <Grid>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="16"/>
+                                <ColumnDefinition Width="*"/>
+                            </Grid.ColumnDefinitions>
+                            <StackPanel Grid.Column="0">
+                                <TextBlock Text="连接方式" Style="{StaticResource FieldLabel}"/>
+                                <ComboBox x:Name="NetModeCombo"/>
+                            </StackPanel>
+                            <StackPanel Grid.Column="2">
+                                <TextBlock Text="网卡型号" Style="{StaticResource FieldLabel}"/>
+                                <ComboBox x:Name="NicCombo"/>
+                            </StackPanel>
+                        </Grid>
+                        <TextBlock x:Name="NetHint" Text="" Style="{StaticResource Hint}"/>
+
+                        <TextBlock Text="MAC 地址（留空自动生成）" Style="{StaticResource FieldLabel}" Margin="0,18,0,6"/>
+                        <TextBox x:Name="MacBox" Width="260" HorizontalAlignment="Left"/>
+
+                        <StackPanel x:Name="TapPanel" Margin="0,18,0,0" Visibility="Collapsed">
+                            <TextBlock Text="TAP 网卡名称" Style="{StaticResource FieldLabel}"/>
+                            <TextBox x:Name="TapBox" Width="260" HorizontalAlignment="Left"/>
+                            <TextBlock Text="桥接需要主机上已安装 OpenVPN TAP-Windows 驱动，并把该虚拟网卡桥接到物理网卡。"
+                                       Style="{StaticResource Hint}"/>
+                        </StackPanel>
+
+                        <Border Style="{StaticResource HLine}" Margin="0,22"/>
+
+                        <TextBlock Text="端口转发（NAT 模式）" Style="{StaticResource GroupHeader}"/>
+
+                        <Border Background="{StaticResource BrushSurface}"
+                                BorderBrush="{StaticResource BrushBorder}" BorderThickness="1"
+                                CornerRadius="6" MinHeight="110">
+                            <ListBox x:Name="ForwardList" Background="Transparent" BorderThickness="0">
+                                <ListBox.ItemTemplate>
+                                    <DataTemplate>
+                                        <TextBlock Text="{Binding Text}" Margin="8,6" FontSize="12"/>
+                                    </DataTemplate>
+                                </ListBox.ItemTemplate>
+                            </ListBox>
+                        </Border>
+
+                        <StackPanel Orientation="Horizontal" Margin="0,10,0,0">
+                            <ComboBox x:Name="ProtoCombo" Width="80"/>
+                            <TextBox x:Name="HostPortBox" Width="90" Margin="8,0,0,0" Text="2222"/>
+                            <TextBlock Text="→" VerticalAlignment="Center" Margin="8,0"
+                                       Foreground="{StaticResource BrushTextMuted}"/>
+                            <TextBox x:Name="GuestPortBox" Width="90" Text="22"/>
+                            <Button Content="添加规则" Click="OnAddForward" Margin="10,0,0,0"/>
+                            <Button Content="删除" Click="OnRemoveForward" Margin="8,0,0,0"
+                                    Style="{StaticResource DangerButton}"/>
+                        </StackPanel>
+                        <TextBlock Text="主机端口 → 客户机端口。例如 2222 → 22 后，可用 ssh -p 2222 localhost 连入客户机。"
+                                   Style="{StaticResource Hint}"/>
+                    </StackPanel>
+                </ScrollViewer>
+            </TabItem>
+
+            <!-- ================= 音频与共享 ================= -->
+            <TabItem Header="音频与共享">
+                <ScrollViewer VerticalScrollBarVisibility="Auto">
+                    <StackPanel Margin="20,18,20,20">
+                        <TextBlock Text="声卡" Style="{StaticResource GroupHeader}"/>
+
+                        <Grid>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="16"/>
+                                <ColumnDefinition Width="*"/>
+                            </Grid.ColumnDefinitions>
+                            <StackPanel Grid.Column="0">
+                                <TextBlock Text="音频后端" Style="{StaticResource FieldLabel}"/>
+                                <ComboBox x:Name="AudioBackendCombo"/>
+                            </StackPanel>
+                            <StackPanel Grid.Column="2">
+                                <TextBlock Text="声卡型号" Style="{StaticResource FieldLabel}"/>
+                                <ComboBox x:Name="SoundCardCombo"/>
+                            </StackPanel>
+                        </Grid>
+
+                        <Border Style="{StaticResource HLine}" Margin="0,22"/>
+
+                        <TextBlock Text="共享文件夹" Style="{StaticResource GroupHeader}"/>
+
+                        <CheckBox x:Name="ShareCheck" Content="启用共享文件夹"/>
+                        <TextBlock Text="主机目录" Style="{StaticResource FieldLabel}" Margin="0,16,0,6"/>
+                        <Grid>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="Auto"/>
+                            </Grid.ColumnDefinitions>
+                            <TextBox x:Name="ShareBox" Grid.Column="0"/>
+                            <Button Grid.Column="1" Content="浏览…" Click="OnBrowseShare" Margin="8,0,0,0"/>
+                        </Grid>
+                        <CheckBox x:Name="ShareWriteCheck" Content="允许客户机写入" Margin="0,14,0,0"/>
+                        <TextBlock Text="共享通过 VVFAT 实现：客户机内会多出一块 FAT 磁盘。目录不宜过大（建议 2 GB 以内），且开机后新增的文件客户机不会立即看到。"
+                                   Style="{StaticResource Hint}"/>
+                    </StackPanel>
+                </ScrollViewer>
+            </TabItem>
+
+            <!-- ================= 高级 ================= -->
+            <TabItem Header="高级">
+                <Grid Margin="20,18,20,20">
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="*"/>
+                    </Grid.RowDefinitions>
+
+                    <TextBlock Grid.Row="0" Text="附加参数" Style="{StaticResource GroupHeader}"/>
+
+                    <StackPanel Grid.Row="1">
+                        <TextBox x:Name="ExtraArgsBox" Height="70" AcceptsReturn="True"
+                                 TextWrapping="Wrap" VerticalScrollBarVisibility="Auto"
+                                 FontFamily="{StaticResource FontMono}" FontSize="12"/>
+                        <TextBlock Text="这些参数会原样追加到 QEMU 命令行末尾，支持用双引号包住带空格的值。填错会导致虚拟机无法启动。"
+                                   Style="{StaticResource Hint}"/>
+
+                        <TextBlock Text="备注" Style="{StaticResource FieldLabel}" Margin="0,18,0,6"/>
+                        <TextBox x:Name="NotesBox" Height="56" AcceptsReturn="True" TextWrapping="Wrap"/>
+
+                        <CheckBox x:Name="StopOnExitCheck" Content="关闭主程序时一并关闭这台虚拟机" Margin="0,16,0,0"/>
+                    </StackPanel>
+
+                    <Border Grid.Row="2" Style="{StaticResource HLine}" Margin="0,20"/>
+
+                    <Grid Grid.Row="3">
+                        <TextBlock Text="命令行预览" Style="{StaticResource GroupHeader}"/>
+                        <Button Content="刷新预览" Click="OnPreview" HorizontalAlignment="Right"
+                                VerticalAlignment="Top" Margin="0,-6,0,0"/>
+                    </Grid>
+
+                    <Border Grid.Row="4" Background="#0F1114"
+                            BorderBrush="{StaticResource BrushBorder}" BorderThickness="1"
+                            CornerRadius="6" Padding="10">
+                        <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Auto">
+                            <TextBlock x:Name="PreviewText" Text="点击「刷新预览」查看实际执行的 QEMU 命令。"
+                                       FontFamily="{StaticResource FontMono}" FontSize="11.5"
+                                       Foreground="{StaticResource BrushTextMuted}"
+                                       TextWrapping="Wrap"/>
+                        </ScrollViewer>
+                    </Border>
+                </Grid>
+            </TabItem>
+        </TabControl>
+
+        <!-- 底部按钮 -->
+        <Border Grid.Row="2" Background="{StaticResource BrushSurface}"
+                BorderBrush="{StaticResource BrushBorder}" BorderThickness="0,1,0,0"
+                Padding="24,14" Margin="0,12,0,0">
+            <Grid>
+                <TextBlock x:Name="StatusText" Text="" VerticalAlignment="Center"
+                           FontSize="12" Foreground="{StaticResource BrushTextMuted}"/>
+                <StackPanel Orientation="Horizontal" HorizontalAlignment="Right">
+                    <Button Content="取消" Click="OnCancel" MinWidth="88"/>
+                    <Button Content="保存" Click="OnSave" MinWidth="88" Margin="10,0,0,0"
+                            Style="{StaticResource PrimaryButton}"/>
+                </StackPanel>
+            </Grid>
+        </Border>
+    </Grid>
+</Window>

@@ -1,0 +1,511 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Raster Virtual — 桌面级虚拟机</title>
+<meta name="description" content="Raster Virtual：轻量桌面级虚拟机客户端，内置 QEMU 引擎，下载安装程序后选择目录即自动部署。" />
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;700&family=Noto+Sans+SC:wght@400;500;700&display=swap" rel="stylesheet" />
+<style>
+  :root {
+    --bg: #14161a;
+    --bg-2: #1a1d23;
+    --bg-3: #20242c;
+    --ink: #edeef0;
+    --muted: #9aa1ab;
+    --faint: #5c636e;
+    --line: rgba(255, 255, 255, 0.07);
+    --accent: #e5843c;
+    --accent-soft: color-mix(in oklab, #e5843c 16%, transparent);
+    --accent-line: color-mix(in oklab, #e5843c 38%, transparent);
+    --maxw: 1120px;
+    --ease: cubic-bezier(0.16, 1, 0.3, 1);
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  html { scroll-behavior: smooth; }
+
+  body {
+    background: var(--bg);
+    color: var(--ink);
+    font-family: "Space Grotesk", "Noto Sans SC", system-ui, sans-serif;
+    line-height: 1.6;
+    -webkit-font-smoothing: antialiased;
+    overflow-x: hidden;
+    background-image:
+      radial-gradient(1200px 600px at 78% -8%, color-mix(in oklab, #e5843c 9%, transparent), transparent 60%),
+      linear-gradient(var(--line) 1px, transparent 1px),
+      linear-gradient(90deg, var(--line) 1px, transparent 1px);
+    background-size: auto, 46px 46px, 46px 46px;
+    background-position: center top, center top, center top;
+  }
+
+  a { color: inherit; text-decoration: none; }
+
+  .wrap { max-width: var(--maxw); margin: 0 auto; padding: 0 28px; }
+
+  /* ---------- Nav ---------- */
+  nav {
+    position: sticky; top: 0; z-index: 50;
+    border-bottom: 1px solid var(--line);
+    background: color-mix(in oklab, #14161a 82%, transparent);
+    backdrop-filter: blur(8px);
+  }
+  .nav-in { display: flex; align-items: center; justify-content: space-between; height: 66px; }
+  .brand { display: flex; align-items: center; gap: 11px; font-weight: 700; letter-spacing: 0.2px; }
+  .brand .mark {
+    width: 26px; height: 26px; border-radius: 7px;
+    background: var(--accent);
+    display: grid; place-items: center;
+    box-shadow: 0 0 0 1px color-mix(in oklab, #e5843c 40%, transparent), 0 6px 18px -6px var(--accent);
+  }
+  .brand .mark span { width: 11px; height: 11px; border: 2px solid #14161a; border-radius: 2px; }
+  .nav-right { display: flex; align-items: center; gap: 14px; }
+  .langs { display: flex; gap: 2px; padding: 3px; border: 1px solid var(--line); border-radius: 10px; background: var(--bg-2); }
+  .langs button {
+    font: inherit; font-size: 12.5px; color: var(--muted);
+    background: none; border: 0; cursor: pointer;
+    padding: 5px 9px; border-radius: 7px; transition: color 0.2s, background 0.2s;
+  }
+  .langs button:hover { color: var(--ink); }
+  .langs button.active { color: #14161a; background: var(--accent); font-weight: 700; }
+  .nav-dl {
+    font: inherit; font-size: 13.5px; font-weight: 700; color: var(--ink);
+    padding: 9px 16px; border-radius: 10px; border: 1px solid var(--accent-line);
+    transition: transform 0.25s var(--ease), background 0.2s;
+  }
+  .nav-dl:hover { background: var(--accent-soft); transform: translateY(-1px); }
+
+  /* ---------- Hero ---------- */
+  .hero { display: grid; grid-template-columns: 1.05fr 0.95fr; gap: 40px; align-items: center; padding: 84px 0 96px; }
+  .eyebrow {
+    display: inline-flex; align-items: center; gap: 8px;
+    font-size: 13px; letter-spacing: 1.5px; text-transform: uppercase; color: var(--accent);
+    border: 1px solid var(--accent-line); padding: 6px 13px; border-radius: 999px; margin-bottom: 26px;
+  }
+  .eyebrow::before { content: ""; width: 6px; height: 6px; border-radius: 50%; background: var(--accent); }
+  h1 { font-size: clamp(2.4rem, 5.4vw, 4.1rem); line-height: 1.04; letter-spacing: -0.5px; font-weight: 700; }
+  .accent { color: var(--accent); }
+  .hero p.sub { color: var(--muted); font-size: clamp(1rem, 1.4vw, 1.12rem); max-width: 40ch; margin: 24px 0 32px; }
+  .cta-row { display: flex; align-items: center; gap: 18px; flex-wrap: wrap; }
+  .btn-primary {
+    display: inline-flex; align-items: center; gap: 10px;
+    font: inherit; font-size: 1.02rem; font-weight: 700; color: #14161a;
+    background: var(--accent); padding: 15px 26px; border-radius: 13px; cursor: pointer; border: 0;
+    box-shadow: 0 14px 34px -12px var(--accent);
+    transition: transform 0.28s var(--ease), box-shadow 0.28s var(--ease);
+  }
+  .btn-primary:hover { transform: translateY(-3px); box-shadow: 0 20px 44px -12px var(--accent); }
+  .btn-primary svg { transition: transform 0.28s var(--ease); }
+  .btn-primary:hover svg { transform: translateY(2px); }
+  .note { font-size: 13px; color: var(--faint); }
+  .link { color: var(--accent); border-bottom: 1px solid var(--accent-line); }
+  .link:hover { border-color: var(--accent); }
+
+  .pills { display: flex; gap: 9px; flex-wrap: wrap; margin-top: 34px; }
+  .pill {
+    font-size: 12px; color: var(--muted); padding: 6px 12px; border-radius: 8px;
+    border: 1px solid var(--line); background: var(--bg-2);
+    font-family: ui-monospace, "SFMono-Regular", Menlo, monospace;
+  }
+
+  /* hero visual */
+  .visual { position: relative; aspect-ratio: 1 / 1; }
+  .visual svg { width: 100%; height: 100%; display: block; }
+  .node { animation: float 6s var(--ease) infinite; transform-origin: center; }
+  .node.b { animation-delay: -2s; }
+  .node.c { animation-delay: -4s; }
+  @keyframes float { 0%,100% { transform: translateY(0); } 50% { transform: translateY(-10px); } }
+
+  /* ---------- Section shell ---------- */
+  section { padding: 78px 0; border-top: 1px solid var(--line); }
+  .sec-head { max-width: 56ch; margin-bottom: 46px; }
+  .sec-tag { font-size: 13px; letter-spacing: 1.5px; text-transform: uppercase; color: var(--accent); }
+  .sec-head h2 { font-size: clamp(1.7rem, 3vw, 2.5rem); letter-spacing: -0.4px; margin-top: 12px; font-weight: 700; }
+
+  /* features */
+  .grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 18px; }
+  .card {
+    border: 1px solid var(--line); background: var(--bg-2); border-radius: 16px; padding: 26px 24px;
+    transition: transform 0.3s var(--ease), border-color 0.3s, background 0.3s;
+    position: relative; overflow: hidden;
+  }
+  .card::after {
+    content: ""; position: absolute; inset: 0; border-radius: 16px; pointer-events: none;
+    background: radial-gradient(420px 200px at 100% 0%, var(--accent-soft), transparent 70%);
+    opacity: 0; transition: opacity 0.3s;
+  }
+  .card:hover { transform: translateY(-5px); border-color: var(--accent-line); background: var(--bg-3); }
+  .card:hover::after { opacity: 1; }
+  .card .ico {
+    width: 42px; height: 42px; border-radius: 11px; display: grid; place-items: center;
+    background: var(--accent-soft); color: var(--accent); margin-bottom: 18px;
+    border: 1px solid var(--accent-line);
+  }
+  .card h3 { font-size: 1.12rem; font-weight: 700; margin-bottom: 9px; }
+  .card p { color: var(--muted); font-size: 0.95rem; }
+
+  /* steps */
+  .steps { display: grid; grid-template-columns: repeat(3, 1fr); gap: 22px; counter-reset: step; }
+  .step { position: relative; padding-top: 30px; border-top: 2px solid var(--accent-line); }
+  .step .n {
+    position: absolute; top: -16px; left: 0; width: 32px; height: 32px; border-radius: 9px;
+    background: var(--accent); color: #14161a; font-weight: 700; display: grid; place-items: center; font-size: 14px;
+  }
+  .step h3 { font-size: 1.18rem; font-weight: 700; margin: 6px 0 10px; }
+  .step p { color: var(--muted); font-size: 0.96rem; }
+
+  /* requirements */
+  .req-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 14px 38px; max-width: 760px; }
+  .req { display: flex; align-items: baseline; gap: 14px; padding: 16px 0; border-bottom: 1px solid var(--line); }
+  .req .k { font-family: ui-monospace, monospace; color: var(--accent); font-size: 13px; min-width: 26px; }
+  .req .v { color: var(--ink); }
+
+  /* footer */
+  footer { border-top: 1px solid var(--line); padding: 40px 0; color: var(--faint); font-size: 13.5px; }
+  .foot-in { display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 14px; }
+
+  /* reveal */
+  .reveal { opacity: 0; transform: translateY(22px); transition: opacity 0.8s var(--ease), transform 0.8s var(--ease); }
+  .reveal.in { opacity: 1; transform: none; }
+
+  /* responsive */
+  @media (max-width: 880px) {
+    .hero { grid-template-columns: 1fr; gap: 8px; padding: 56px 0 64px; }
+    .visual { order: -1; max-width: 360px; margin: 0 auto 10px; }
+    .grid, .steps { grid-template-columns: 1fr; }
+    .req-grid { grid-template-columns: 1fr; }
+    .nav-dl { display: none; }
+  }
+  @media (max-width: 520px) {
+    .wrap { padding: 0 18px; }
+    .langs button { padding: 5px 7px; }
+    h1 { font-size: 2.3rem; }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    * { animation: none !important; scroll-behavior: auto; }
+    .reveal { opacity: 1; transform: none; transition: none; }
+    .btn-primary, .card { transition: none; }
+  }
+</style>
+</head>
+<body>
+
+<nav>
+  <div class="wrap nav-in">
+    <div class="brand"><span class="mark"><span></span></span> Raster Virtual</div>
+    <div class="nav-right">
+      <div class="langs" id="langs">
+        <button data-lang="zh">中文</button>
+        <button data-lang="en">EN</button>
+        <button data-lang="fr">FR</button>
+        <button data-lang="ru">RU</button>
+        <button data-lang="es">ES</button>
+      </div>
+      <a class="nav-dl" href="https://lix-uix.bj.bcebos.com/Raster%20Virtual/RasterVirtual-Download.exe" download data-i18n="navDownload">下载</a>
+    </div>
+  </div>
+</nav>
+
+<header class="wrap hero">
+  <div class="hero-copy">
+    <span class="eyebrow" data-i18n="heroEyebrow">桌面级虚拟机</span>
+    <h1 data-i18n="heroTitle">在 Windows 上，运行<span class="accent">任意系统</span></h1>
+    <p class="sub" data-i18n="heroSub">Raster Virtual 是一款轻量桌面虚拟机客户端。内置 QEMU 引擎，无需安装任何依赖，下载安装程序后选择目录即自动部署并解压，载入 ISO 即可创建你的第一台虚拟机。</p>
+    <div class="cta-row">
+      <a class="btn-primary" href="https://lix-uix.bj.bcebos.com/Raster%20Virtual/RasterVirtual-Download.exe" download>
+        <span data-i18n="heroDownload">下载安装程序</span>
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v12"/><path d="M7 11l5 5 5-5"/><path d="M5 21h14"/></svg>
+      </a>
+      <span class="note" data-i18n="heroNote">Windows 10 / 11 · 64 位 · 单文件 exe</span>
+    </div>
+    <p class="note" style="margin-top:10px" data-i18n="heroAlt">或<a href="https://lix-uix.bj.bcebos.com/Raster%20Virtual/RasterVirtual-Client.zip" class="link">下载完整客户端压缩包</a></p>
+    <div class="pills">
+      <span class="pill">QEMU 11</span>
+      <span class="pill">WHPX</span>
+      <span class="pill">UEFI / BIOS</span>
+      <span class="pill">x86_64</span>
+      <span class="pill">单文件</span>
+    </div>
+  </div>
+
+  <div class="visual" aria-hidden="true">
+    <svg viewBox="0 0 400 400" fill="none">
+      <defs>
+        <linearGradient id="g1" x1="0" y1="0" x2="1" y2="1">
+          <stop offset="0" stop-color="#e5843c"/><stop offset="1" stop-color="#b9601f"/>
+        </linearGradient>
+      </defs>
+      <!-- dot grid -->
+      <g stroke="rgba(255,255,255,0.06)" stroke-width="1">
+        <path d="M40 40h320M40 100h320M40 160h320M40 220h320M40 280h320M40 340h320"/>
+        <path d="M40 40v300M100 40v300M160 40v300M220 40v300M280 40v300M340 40v300"/>
+      </g>
+      <!-- floating vm cards -->
+      <g class="node">
+        <rect x="70" y="80" width="170" height="110" rx="14" fill="#20242c" stroke="url(#g1)" stroke-width="1.6"/>
+        <rect x="86" y="98" width="60" height="8" rx="4" fill="#e5843c"/>
+        <rect x="86" y="116" width="120" height="6" rx="3" fill="rgba(255,255,255,0.18)"/>
+        <rect x="86" y="130" width="96" height="6" rx="3" fill="rgba(255,255,255,0.12)"/>
+        <circle cx="216" cy="162" r="9" fill="#e5843c" opacity="0.25"/>
+      </g>
+      <g class="node b">
+        <rect x="170" y="190" width="170" height="110" rx="14" fill="#20242c" stroke="rgba(255,255,255,0.14)" stroke-width="1.4"/>
+        <rect x="186" y="208" width="60" height="8" rx="4" fill="rgba(255,255,255,0.5)"/>
+        <rect x="186" y="226" width="120" height="6" rx="3" fill="rgba(255,255,255,0.16)"/>
+        <rect x="186" y="240" width="96" height="6" rx="3" fill="rgba(255,255,255,0.10)"/>
+      </g>
+      <g class="node c">
+        <rect x="110" y="285" width="150" height="80" rx="13" fill="#1a1d23" stroke="rgba(255,255,255,0.10)" stroke-width="1.2"/>
+        <rect x="126" y="302" width="50" height="7" rx="3.5" fill="#e5843c"/>
+        <rect x="126" y="318" width="104" height="5" rx="2.5" fill="rgba(255,255,255,0.14)"/>
+      </g>
+    </svg>
+  </div>
+</header>
+
+<section class="wrap">
+  <div class="sec-head reveal">
+    <span class="sec-tag" data-i18n="featuresTitle">核心能力</span>
+    <h2 data-i18n="featuresH">为本地虚拟化而生的完整工具链</h2>
+  </div>
+  <div class="grid">
+    <div class="card reveal"><div class="ico">⬡</div><h3 data-i18n="f1t">内置 QEMU 引擎</h3><p data-i18n="f1d">完整的 x86_64 虚拟化后端随客户端打包，开箱即用，无需单独安装。</p></div>
+    <div class="card reveal"><div class="ico">⏏</div><h3 data-i18n="f2t">ISO 一键启动</h3><p data-i18n="f2d">选择系统镜像即可创建虚拟机并引导，支持大部分主流操作系统。</p></div>
+    <div class="card reveal"><div class="ico">▤</div><h3 data-i18n="f3t">UEFI / 传统 BIOS</h3><p data-i18n="f3d">同时支持现代 UEFI 与 Legacy BIOS 固件，兼容新旧系统。</p></div>
+    <div class="card reveal"><div class="ico">⚡</div><h3 data-i18n="f4t">硬件加速 WHPX</h3><p data-i18n="f4d">调用 Windows Hypervisor Platform，获得接近原生的运行性能。</p></div>
+    <div class="card reveal"><div class="ico">⎘</div><h3 data-i18n="f5t">快照与还原</h3><p data-i18n="f5d">随时保存虚拟机运行状态，一键回退到任意时间点。</p></div>
+    <div class="card reveal"><div class="ico">⇄</div><h3 data-i18n="f6t">共享文件夹</h3><p data-i18n="f6d">在主机与虚拟机之间无缝传输文件，协作更高效。</p></div>
+  </div>
+</section>
+
+<section class="wrap">
+  <div class="sec-head reveal">
+    <span class="sec-tag" data-i18n="stepsTitle">三步上手</span>
+    <h2 data-i18n="stepsH">从下载到开机，只需几分钟</h2>
+  </div>
+  <div class="steps">
+    <div class="step reveal"><span class="n">1</span><h3 data-i18n="s1t">获取安装程序</h3><p data-i18n="s1d">下载并运行 RasterVirtual-Download.exe。</p></div>
+    <div class="step reveal"><span class="n">2</span><h3 data-i18n="s2t">选择安装目录</h3><p data-i18n="s2d">程序自动从云端拉取客户端并解压到指定位置。</p></div>
+    <div class="step reveal"><span class="n">3</span><h3 data-i18n="s3t">创建虚拟机</h3><p data-i18n="s3d">打开 Raster Virtual，载入 ISO 即可创建第一台虚拟机。</p></div>
+  </div>
+</section>
+
+<section class="wrap">
+  <div class="sec-head reveal">
+    <span class="sec-tag" data-i18n="reqTitle">系统要求</span>
+    <h2 data-i18n="reqH">开始前，请确认你的环境</h2>
+  </div>
+  <div class="req-grid">
+    <div class="req reveal"><span class="k">01</span><span class="v" data-i18n="r1">Windows 10 / 11（64 位）</span></div>
+    <div class="req reveal"><span class="k">02</span><span class="v" data-i18n="r2">启用 WHPX 或支持虚拟化的 CPU</span></div>
+    <div class="req reveal"><span class="k">03</span><span class="v" data-i18n="r3">至少 4 GB 内存（建议 8 GB 以上）</span></div>
+    <div class="req reveal"><span class="k">04</span><span class="v" data-i18n="r4">约 400 MB 可用磁盘空间</span></div>
+  </div>
+</section>
+
+<footer>
+  <div class="wrap foot-in">
+    <span data-i18n="footer">© 2026 Raster Virtual · 由 QEMU 11 驱动</span>
+    <span class="brand" style="font-size:13px;color:var(--faint)"><span class="mark" style="width:18px;height:18px"><span style="width:7px;height:7px"></span></span> Raster Virtual</span>
+  </div>
+</footer>
+
+<script>
+  const EXE_URL = "https://lix-uix.bj.bcebos.com/Raster%20Virtual/RasterVirtual-Download.exe";
+  const ZIP_URL = "https://lix-uix.bj.bcebos.com/Raster%20Virtual/RasterVirtual-Client.zip";
+
+  const I18N = {
+    zh: {
+      navDownload: "下载",
+      heroEyebrow: "桌面级虚拟机",
+      heroTitle: '在 Windows 上，运行<span class="accent">任意系统</span>',
+      heroSub: "Raster Virtual 是一款轻量桌面虚拟机客户端。内置 QEMU 引擎，无需安装任何依赖，下载安装程序后选择目录即自动部署并解压，载入 ISO 即可创建你的第一台虚拟机。",
+      heroDownload: "下载安装程序",
+      heroNote: "Windows 10 / 11 · 64 位 · 单文件 exe",
+      heroAlt: '或<a href="' + ZIP_URL + '" class="link">下载完整客户端压缩包</a>',
+      featuresTitle: "核心能力",
+      featuresH: "为本地虚拟化而生的完整工具链",
+      f1t: "内置 QEMU 引擎", f1d: "完整的 x86_64 虚拟化后端随客户端打包，开箱即用，无需单独安装。",
+      f2t: "ISO 一键启动", f2d: "选择系统镜像即可创建虚拟机并引导，支持大部分主流操作系统。",
+      f3t: "UEFI / 传统 BIOS", f3d: "同时支持现代 UEFI 与 Legacy BIOS 固件，兼容新旧系统。",
+      f4t: "硬件加速 WHPX", f4d: "调用 Windows Hypervisor Platform，获得接近原生的运行性能。",
+      f5t: "快照与还原", f5d: "随时保存虚拟机运行状态，一键回退到任意时间点。",
+      f6t: "共享文件夹", f6d: "在主机与虚拟机之间无缝传输文件，协作更高效。",
+      stepsTitle: "三步上手",
+      stepsH: "从下载到开机，只需几分钟",
+      s1t: "获取安装程序", s1d: "下载并运行 RasterVirtual-Download.exe。",
+      s2t: "选择安装目录", s2d: "程序自动从云端拉取客户端并解压到指定位置。",
+      s3t: "创建虚拟机", s3d: "打开 Raster Virtual，载入 ISO 即可创建第一台虚拟机。",
+      reqTitle: "系统要求",
+      reqH: "开始前，请确认你的环境",
+      r1: "Windows 10 / 11（64 位）",
+      r2: "启用 WHPX 或支持虚拟化的 CPU",
+      r3: "至少 4 GB 内存（建议 8 GB 以上）",
+      r4: "约 400 MB 可用磁盘空间",
+      footer: "© 2026 Raster Virtual · 由 QEMU 11 驱动"
+    },
+    en: {
+      navDownload: "Download",
+      heroEyebrow: "Desktop Virtualization",
+      heroTitle: 'Run <span class="accent">any system</span> on Windows',
+      heroSub: "Raster Virtual is a lightweight desktop VM client. Bundled with the QEMU engine and zero dependencies — run the installer, pick a folder, and it deploys and extracts automatically. Mount an ISO to spin up your first virtual machine.",
+      heroDownload: "Download installer",
+      heroNote: "Windows 10 / 11 · 64-bit · single-file exe",
+      heroAlt: 'or <a href="' + ZIP_URL + '" class="link">download the full client zip</a>',
+      featuresTitle: "Core capabilities",
+      featuresH: "A complete toolchain for local virtualization",
+      f1t: "Bundled QEMU engine", f1d: "A complete x86_64 virtualization backend ships with the client — no separate install required.",
+      f2t: "Boot from ISO", f2d: "Pick an image to create and boot a VM; supports most mainstream operating systems.",
+      f3t: "UEFI / Legacy BIOS", f3d: "Modern UEFI and Legacy BIOS firmware both supported for old and new systems.",
+      f4t: "WHPX acceleration", f4d: "Leverages the Windows Hypervisor Platform for near-native performance.",
+      f5t: "Snapshots", f5d: "Save a VM's running state anytime and roll back to any point with one click.",
+      f6t: "Shared folders", f6d: "Move files seamlessly between host and guest for smoother workflows.",
+      stepsTitle: "Up and running in 3 steps",
+      stepsH: "From download to boot in minutes",
+      s1t: "Get the installer", s1d: "Download and run RasterVirtual-Download.exe.",
+      s2t: "Choose a folder", s2d: "It pulls the client from the cloud and extracts it to your chosen location.",
+      s3t: "Create a VM", s3d: "Open Raster Virtual, mount an ISO, and create your first virtual machine.",
+      reqTitle: "System requirements",
+      reqH: "Before you start, check your environment",
+      r1: "Windows 10 / 11 (64-bit)",
+      r2: "WHPX enabled, or a CPU with virtualization",
+      r3: "At least 4 GB RAM (8 GB+ recommended)",
+      r4: "About 400 MB free disk space",
+      footer: "© 2026 Raster Virtual · Powered by QEMU 11"
+    },
+    fr: {
+      navDownload: "Télécharger",
+      heroEyebrow: "Virtualisation de bureau",
+      heroTitle: "Lancez <span class=\"accent\">n'importe quel système</span> sur Windows",
+      heroSub: "Raster Virtual est un client de machine virtuelle de bureau léger. Livré avec le moteur QEMU et sans dépendance — lancez l'installateur, choisissez un dossier, et il se déploie et s'extrait automatiquement. Montez un ISO pour démarrer votre première machine virtuelle.",
+      heroDownload: "Télécharger l'installateur",
+      heroNote: "Windows 10 / 11 · 64 bits · exe autonome",
+      heroAlt: 'ou <a href="' + ZIP_URL + '" class="link">téléchargez l\'archive client complète</a>',
+      featuresTitle: "Capacités principales",
+      featuresH: "Une chaîne d'outils complète pour la virtualisation locale",
+      f1t: "Moteur QEMU intégré", f1d: "Un backend de virtualisation x86_64 complet est fourni avec le client — aucune installation séparée.",
+      f2t: "Démarrage par ISO", f2d: "Choisissez une image pour créer et démarrer une VM ; compatible avec la plupart des systèmes.",
+      f3t: "UEFI / BIOS legacy", f3d: "Prise en charge du firmware UEFI moderne et du BIOS legacy, pour les systèmes neufs et anciens.",
+      f4t: "Accélération WHPX", f4d: "Exploite la plateforme Windows Hypervisor pour des performances quasi natives.",
+      f5t: "Instantanés", f5d: "Sauvegardez l'état d'une VM à tout moment et revenez à un point en un clic.",
+      f6t: "Dossiers partagés", f6d: "Transférez des fichiers facilement entre l'hôte et l'invité.",
+      stepsTitle: "Prêt en 3 étapes",
+      stepsH: "Du téléchargement au démarrage en quelques minutes",
+      s1t: "Récupérez l'installateur", s1d: "Téléchargez et lancez RasterVirtual-Download.exe.",
+      s2t: "Choisissez un dossier", s2d: "Il récupère le client depuis le cloud et l'extrait à l'emplacement choisi.",
+      s3t: "Créez une VM", s3d: "Ouvrez Raster Virtual, montez un ISO et créez votre première machine virtuelle.",
+      reqTitle: "Configuration requise",
+      reqH: "Avant de commencer, vérifiez votre environnement",
+      r1: "Windows 10 / 11 (64 bits)",
+      r2: "WHPX activé, ou un CPU prenant en charge la virtualisation",
+      r3: "Au moins 4 Go de RAM (8 Go+ recommandé)",
+      r4: "Environ 400 Mo d'espace disque",
+      footer: "© 2026 Raster Virtual · Propulsé par QEMU 11"
+    },
+    ru: {
+      navDownload: "Скачать",
+      heroEyebrow: "Настольная виртуализация",
+      heroTitle: 'Запускайте <span class="accent">любую систему</span> в Windows',
+      heroSub: "Raster Virtual — лёгкий настольный клиент виртуальных машин. Встроенный движок QEMU, без зависимостей: запустите установщик, выберите папку — и клиент сам скачается и распакуется. Подключите ISO, чтобы создать первую виртуальную машину.",
+      heroDownload: "Скачать установщик",
+      heroNote: "Windows 10 / 11 · 64 бита · один exe-файл",
+      heroAlt: 'или <a href="' + ZIP_URL + '" class="link">скачайте полный архив клиента</a>',
+      featuresTitle: "Возможности",
+      featuresH: "Полный набор инструментов для локальной виртуализации",
+      f1t: "Встроенный QEMU", f1d: "Полноценный backend виртуализации x86_64 поставляется с клиентом — отдельно устанавливать ничего не нужно.",
+      f2t: "Загрузка с ISO", f2d: "Выберите образ, чтобы создать и запустить ВМ; поддерживаются большинство систем.",
+      f3t: "UEFI / Legacy BIOS", f3d: "Поддержка современного UEFI и устаревшего BIOS для новых и старых систем.",
+      f4t: "Ускорение WHPX", f4d: "Использует Windows Hypervisor Platform для производительности близкой к нативной.",
+      f5t: "Снимки состояния", f5d: "Сохраняйте состояние ВМ в любой момент и откатывайтесь в один клик.",
+      f6t: "Общие папки", f6d: "Легко передавайте файлы между хостом и гостем.",
+      stepsTitle: "Готово за 3 шага",
+      stepsH: "От загрузки до запуска за несколько минут",
+      s1t: "Получите установщик", s1d: "Скачайте и запустите RasterVirtual-Download.exe.",
+      s2t: "Выберите папку", s2d: "Программа загрузит клиент из облака и распакует в выбранное место.",
+      s3t: "Создайте ВМ", s3d: "Откройте Raster Virtual, подключите ISO и создайте первую виртуальную машину.",
+      reqTitle: "Системные требования",
+      reqH: "Перед началом проверьте ваше окружение",
+      r1: "Windows 10 / 11 (64 бита)",
+      r2: "WHPX включён или процессор с виртуализацией",
+      r3: "Не менее 4 ГБ ОЗУ (рекомендуется 8 ГБ+)",
+      r4: "Около 400 МБ свободного места",
+      footer: "© 2026 Raster Virtual · На базе QEMU 11"
+    },
+    es: {
+      navDownload: "Descargar",
+      heroEyebrow: "Virtualización de escritorio",
+      heroTitle: 'Ejecuta <span class="accent">cualquier sistema</span> en Windows',
+      heroSub: "Raster Virtual es un cliente de máquinas virtuales de escritorio y ligero. Incluye el motor QEMU y cero dependencias: ejecuta el instalador, elige una carpeta y se despliega y extrae solo. Monta un ISO para crear tu primera máquina virtual.",
+      heroDownload: "Descargar instalador",
+      heroNote: "Windows 10 / 11 · 64 bits · exe autónomo",
+      heroAlt: 'o <a href="' + ZIP_URL + '" class="link">descarga el zip completo del cliente</a>',
+      featuresTitle: "Capacidades",
+      featuresH: "Una cadena de herramientas completa para la virtualización local",
+      f1t: "Motor QEMU integrado", f1d: "Un backend de virtualización x86_64 completo viene con el cliente — sin instalación aparte.",
+      f2t: "Arranque desde ISO", f2d: "Elige una imagen para crear y arrancar una VM; compatible con la mayoría de sistemas.",
+      f3t: "UEFI / BIOS legacy", f3d: "Soporte de firmware UEFI moderno y BIOS legacy, para sistemas nuevos y viejos.",
+      f4t: "Aceleración WHPX", f4d: "Aprovecha la plataforma Windows Hypervisor para un rendimiento casi nativo.",
+      f5t: "Instantáneas", f5d: "Guarda el estado de una VM en cualquier momento y vuelve a un punto con un clic.",
+      f6t: "Carpetas compartidas", f6d: "Mueve archivos sin problemas entre el host y el invitado.",
+      stepsTitle: "Listo en 3 pasos",
+      stepsH: "De la descarga al arranque en minutos",
+      s1t: "Obtén el instalador", s1d: "Descarga y ejecuta RasterVirtual-Download.exe.",
+      s2t: "Elige una carpeta", s2d: "Descarga el cliente desde la nube y lo extrae en la ubicación elegida.",
+      s3t: "Crea una VM", s3d: "Abre Raster Virtual, monta un ISO y crea tu primera máquina virtual.",
+      reqTitle: "Requisitos del sistema",
+      reqH: "Antes de empezar, comprueba tu entorno",
+      r1: "Windows 10 / 11 (64 bits)",
+      r2: "WHPX activado, o CPU con virtualización",
+      r3: "Al menos 4 GB de RAM (8 GB+ recomendado)",
+      r4: "Unos 400 MB de espacio en disco",
+      footer: "© 2026 Raster Virtual · Basado en QEMU 11"
+    }
+  };
+
+  const SUPPORTED = ["zh", "en", "fr", "ru", "es"];
+
+  function detectLang() {
+    const nav = (navigator.language || "zh").slice(0, 2).toLowerCase();
+    return SUPPORTED.includes(nav) ? nav : "zh";
+  }
+
+  function applyLang(lang) {
+    document.documentElement.lang = lang;
+    const dict = I18N[lang];
+    document.querySelectorAll("[data-i18n]").forEach((el) => {
+      const key = el.getAttribute("data-i18n");
+      if (dict[key] != null) el.innerHTML = dict[key];
+    });
+    document.querySelectorAll("#langs button").forEach((b) => {
+      b.classList.toggle("active", b.getAttribute("data-lang") === lang);
+    });
+    try { localStorage.setItem("rv-lang", lang); } catch (e) {}
+  }
+
+  // init
+  let initial = "zh";
+  try {
+    const saved = localStorage.getItem("rv-lang");
+    if (saved && SUPPORTED.includes(saved)) initial = saved;
+    else initial = detectLang();
+  } catch (e) { initial = detectLang(); }
+  applyLang(initial);
+
+  document.getElementById("langs").addEventListener("click", (e) => {
+    const btn = e.target.closest("button[data-lang]");
+    if (btn) applyLang(btn.getAttribute("data-lang"));
+  });
+
+  // scroll reveal
+  const io = new IntersectionObserver((entries) => {
+    entries.forEach((en) => { if (en.isIntersecting) { en.target.classList.add("in"); io.unobserve(en.target); } });
+  }, { threshold: 0.12 });
+  document.querySelectorAll(".reveal").forEach((el) => io.observe(el));
+</script>
+</body>
+</html>
