@@ -537,6 +537,9 @@
                     </ScrollViewer>
 
                     <StackPanel Grid.Column="1" Margin="12,0,16,12" VerticalAlignment="Top">
+                        <Button Command="{Binding ExportLogCommand}" Padding="12,6" Margin="0,0,0,6">
+                            <TextBlock Text="导出" FontSize="12"/>
+                        </Button>
                         <Button Command="{Binding ClearLogCommand}" Padding="12,6" Margin="0,0,0,6">
                             <TextBlock Text="清空" FontSize="12"/>
                         </Button>

@@ -1,8 +1,10 @@
 using System.Collections.ObjectModel;
 using System.Diagnostics;
 using System.IO;
+using System.Text;
 using System.Windows;
 using System.Windows.Input;
+using Microsoft.Win32;
 using RasterVirtual.Infrastructure;
 using RasterVirtual.Models;
 using RasterVirtual.Services;
@@ -100,6 +102,7 @@ public sealed class MainViewModel : ObservableObject
     public ICommand MountIsoCommand { get; }
     public ICommand ScreenshotCommand { get; }
     public ICommand ClearLogCommand { get; }
+    public ICommand ExportLogCommand { get; }
     public ICommand AboutCommand { get; }
 
     public MainViewModel()
@@ -127,6 +130,7 @@ public sealed class MainViewModel : ObservableObject
         MountIsoCommand = new RelayCommand(MountIso, () => Selected is { IsStopped: true });
         ScreenshotCommand = new AsyncRelayCommand(ScreenshotAsync, () => Selected is { IsRunning: true });
         ClearLogCommand = new RelayCommand(() => LogLines.Clear());
+        ExportLogCommand = new RelayCommand(ExportLog);
         AboutCommand = new RelayCommand(ShowAbout);
 
         Initialize();
@@ -494,6 +498,66 @@ public sealed class MainViewModel : ObservableObject
             $"运行时：{QemuStatus}\n" +
             $"硬件加速：{AccelStatusText}",
             "关于 Raster Virtual", MessageBoxButton.OK, MessageBoxImage.Information);
+    }
+
+    private void ExportLog()
+    {
+        var dialog = new SaveFileDialog
+        {
+            Title = "导出日志",
+            Filter = "日志文件 (*.log)|*.log|所有文件 (*.*)|*.*",
+            FileName = $"RasterVirtual-日志-{DateTime.Now:yyyyMMdd-HHmmss}.log",
+            DefaultExt = ".log",
+            AddExtension = true
+        };
+
+        if (dialog.ShowDialog() != true) return;
+
+        try
+        {
+            var sb = new StringBuilder();
+            sb.AppendLine("========================================================");
+            sb.AppendLine("Raster Virtual 日志导出");
+            sb.AppendLine($"导出时间：{DateTime.Now:yyyy-MM-dd HH:mm:ss}");
+            sb.AppendLine($"系统：{Environment.OSVersion}");
+            sb.AppendLine($"运行时：{QemuStatus}");
+            sb.AppendLine("========================================================");
+            sb.AppendLine();
+            sb.AppendLine("-------------------- 运行日志 --------------------");
+            foreach (var line in LogLines)
+                sb.AppendLine(line);
+
+            foreach (var m in Machines)
+            {
+                var path = m.Machine.LogPath;
+                if (File.Exists(path))
+                {
+                    sb.AppendLine();
+                    sb.AppendLine($"-------------------- QEMU 会话日志：{m.Name} --------------------");
+                    sb.AppendLine(File.ReadAllText(path));
+                }
+            }
+
+            var crash = Path.Combine(AppSettings.ConfigDirectory, "crash.log");
+            if (File.Exists(crash))
+            {
+                sb.AppendLine();
+                sb.AppendLine("-------------------- 崩溃日志 (crash.log) --------------------");
+                sb.AppendLine(File.ReadAllText(crash));
+            }
+
+            File.WriteAllText(dialog.FileName, sb.ToString(), Encoding.UTF8);
+
+            AppendLog($"日志已导出至：{dialog.FileName}");
+            MessageBox.Show($"日志已成功导出：\n{dialog.FileName}", "Raster Virtual",
+                MessageBoxButton.OK, MessageBoxImage.Information);
+        }
+        catch (Exception ex)
+        {
+            AppendLog("导出日志失败：" + ex.Message);
+            MessageBox.Show("导出日志失败：" + ex.Message, "Raster Virtual",
+                MessageBoxButton.OK, MessageBoxImage.Error);
+        }
     }
 
     // ---------------------------------------------------------------
