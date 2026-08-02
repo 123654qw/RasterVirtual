@@ -37,6 +37,7 @@
     <SolidColorBrush x:Key="BrushAccent" Color="{StaticResource ColorAccent}"/>
     <SolidColorBrush x:Key="BrushAccentHover" Color="{StaticResource ColorAccentHover}"/>
     <SolidColorBrush x:Key="BrushAccentPressed" Color="{StaticResource ColorAccentPressed}"/>
+    <SolidColorBrush x:Key="BrushPanel" Color="{StaticResource ColorSurfaceRaised}"/>
 
     <SolidColorBrush x:Key="BrushRunning" Color="{StaticResource ColorRunning}"/>
     <SolidColorBrush x:Key="BrushPaused" Color="{StaticResource ColorPaused}"/>

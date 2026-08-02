@@ -4,7 +4,9 @@ using System.Runtime.InteropServices;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Interop;
+using RasterVirtual.Services;
 using RasterVirtual.ViewModels;
+using System.Threading.Tasks;
 
 namespace RasterVirtual.Views;
 
@@ -28,6 +30,7 @@ public partial class MainWindow : Window
 
         SourceInitialized += (_, _) => ApplyDarkTitleBar();
         Closing += OnClosing;
+        Loaded += MainWindow_Loaded;
     }
 
     /// <summary>把系统标题栏也切换成深色，避免顶部出现一条白边。</summary>
@@ -63,6 +66,27 @@ public partial class MainWindow : Window
         {
             LogScroll?.ScrollToEnd();
         }), System.Windows.Threading.DispatcherPriority.Background);
+    }
+
+    private async void MainWindow_Loaded(object? sender, RoutedEventArgs e)
+    {
+        try
+        {
+            var remote = await UpdateService.FetchRemoteVersionAsync();
+            if (!string.IsNullOrWhiteSpace(remote) &&
+                !string.Equals(UpdateService.LocalVersion, remote, StringComparison.OrdinalIgnoreCase))
+            {
+                var win = new UpdateWindow(UpdateService.LocalVersion, remote, () => _vm.HasRunningMachines)
+                {
+                    Owner = this
+                };
+                win.ShowDialog();
+            }
+        }
+        catch
+        {
+            // 版本检查失败（无网络/超时等）时静默，不影响正常使用
+        }
     }
 
     private async void OnClosing(object? sender, CancelEventArgs e)
